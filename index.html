@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="lib/papaparse.min.js"></script>
+    <script src="lib/highstock.js"></script>
+    <!--<script src="lib/exporting.js"></script>-->
+    <!--<script src="lib/export-data.js"></script>-->
+    <script src="lib/moment.min.js"></script>
+    <script src="lib/underscore-min.js"></script>
+</head>
+<body>
+<div id="container" style="height: 400px; min-width: 310px"></div>
+
+</body>
+</html>
+
+<script>
+
+    function normalize(min, max) {
+        var delta = max - min;
+        return function (val) {
+            return (val - min) / delta;
+        };
+    }
+
+    function quantile(array, percentile) {
+        array.sort();
+        index = percentile/100. * (array.length-1);
+        if (Math.floor(index) == index) {
+            result = array[index];
+        } else {
+            i = Math.floor(index)
+            fraction = index - i;
+            result = array[i] + (array[i+1] - array[i]) * fraction;
+        }
+        return result;
+    }
+
+
+
+    $.ajax({
+        url: "data/DailyEDLMatchResults.txt",
+        success: function (data) {
+            var data_ind = Papa.parse(data)
+            var data_ind_transpose = _.zip.apply(_, data_ind.data)
+            var date_ind = data_ind_transpose[0]
+            var min_date = _.first(date_ind)
+            var val_ind = _.map(data_ind_transpose[1], Number)
+            var min_val = Math.min(...val_ind)
+            var max_val = Math.max(...val_ind)
+
+            val_ind = val_ind.map(normalize(min_val, max_val))
+            val_ind_tmp = JSON.parse(JSON.stringify(val_ind))
+            var percentile_95_val = quantile(val_ind_tmp, 95)
+
+            $.ajax({
+                url: "data/SPY.csv",
+                success: function (data) {
+                    var data_org = Papa.parse(data)
+                    var data_org_transpose = _.zip.apply(_, data_org.data)
+                    data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
+                    var date_org = _.filter(data_org_transpose[0], function (num) {
+                        return num >= min_date
+                    }).reverse()
+                    for(i = 0; i < date_ind.length; i++){
+                        date_ind[i] = moment(date_ind[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
+                    }
+
+                    var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
+                    var series_ind = _.zip(date_ind, val_ind)
+                    var series_org = _.zip(date_ind, val_org)
+
+                    $('#container').highcharts('StockChart', {
+
+                        chart: {
+                            zoomType: 'xy',
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        title: {
+                            text: 'Indicator vs SPX'
+                        },
+                        subtitle: {
+                            text: 'Source: gavrishchaka.com'
+                        },
+
+                        rangeSelector: {
+                            selected: 1
+                        },
+
+                        yAxis: [{ // Primary yAxis
+                            labels: {
+                                format: '{value}',
+                                style: {
+                                    color: Highcharts.getOptions().colors[1]
+                                }
+                            },
+                            title: {
+                                text: 'SPX',
+                                style: {
+                                    color: Highcharts.getOptions().colors[1]
+                                }
+                            },
+                            opposite: false
+                        }, { // Secondary yAxis
+                            title: {
+                                text: 'Indicator',
+                                style: {
+                                    color: Highcharts.getOptions().colors[0]
+                                }
+                            },
+                            labels: {
+                                format: '{value}',
+                                style: {
+                                    color: Highcharts.getOptions().colors[0]
+                                }
+                            },
+                            plotLines: [ {
+                                value: percentile_95_val,
+                                color: 'red',
+                                dashStyle: 'shortdash',
+                                width: 2,
+                                label: {
+                                    text: '95 pencentile'
+                                }
+                            }]
+                        }],
+                        plotOptions: {
+                            series: {
+                                turboThreshold: 5000
+                            }
+                        },
+                        series: [
+                            {
+                                name: 'SPX',
+                                data: series_org,
+                                type: 'spline',
+                                tooltip: {
+                                    valueDecimals: 2,
+                                }
+                            },
+                            {
+                                name: 'Indicator',
+                                data: series_ind,
+                                yAxis: 1,
+                                type: 'spline',
+                                tooltip: {
+                                    valueDecimals: 2,
+                                }
+                            }]
+                    });
+
+
+                }
+            })
+        },
+        dataType: "text",
+    });
+
+
+    //
+    // $(function () {
+    //
+    //     $('#container').highcharts('StockChart', {
+    //
+    //         chart: {
+    //             zoomType: 'xy'
+    //         },
+    //
+    //         title: {
+    //             text: 'Average Monthly Temperature and Rainfall in Tokyo'
+    //         },
+    //         subtitle: {
+    //             text: 'Source: WorldClimate.com'
+    //         },
+    //
+    //         rangeSelector : {
+    //             selected : 1
+    //         },
+    //
+    //         yAxis: [{ // Primary yAxis
+    //             labels: {
+    //                 format: '{value}°C',
+    //                 style: {
+    //                     color: Highcharts.getOptions().colors[1]
+    //                 }
+    //             },
+    //             title: {
+    //                 text: 'Temperature',
+    //                 style: {
+    //                     color: Highcharts.getOptions().colors[1]
+    //                 }
+    //             },
+    //             opposite: false
+    //         }, { // Secondary yAxis
+    //             title: {
+    //                 text: 'Rainfall',
+    //                 style: {
+    //                     color: Highcharts.getOptions().colors[0]
+    //                 }
+    //             },
+    //             labels: {
+    //                 format: '{value} mm',
+    //                 style: {
+    //                     color: Highcharts.getOptions().colors[0]
+    //                 }
+    //             }
+    //         }],
+    //
+    //         series : [{
+    //             name : 'Rainfall',
+    //             data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4],
+    //             yAxis: 1,
+    //             type: 'spline',
+    //             tooltip: {
+    //                 valueDecimals: 2,
+    //                 valueSuffix: ' mm'
+    //             }
+    //         },
+    //             {
+    //                 name : 'Temperature',
+    //                 data: [7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6],
+    //                 type: 'spline',
+    //                 tooltip: {
+    //                     valueDecimals: 2,
+    //                     valueSuffix: '°C'
+    //                 }
+    //             }]
+    //     });
+    // });
+
+
+</script>
