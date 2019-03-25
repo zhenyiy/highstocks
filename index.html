@@ -17,6 +17,15 @@
 
 <script>
 
+    $.urlParam = function(name){
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results==null) {
+            return null;
+        }
+        return decodeURI(results[1]) || 0;
+    }
+
+
     function normalize(min, max) {
         var delta = max - min;
         return function (val) {
@@ -40,7 +49,7 @@
 
 
     $.ajax({
-        url: "data/DailyEDLMatchResults.txt",
+        url: $.urlParam('series1'),
         success: function (data) {
             var data_ind = Papa.parse(data)
             var data_ind_transpose = _.zip.apply(_, data_ind.data)
@@ -55,7 +64,7 @@
             var percentile_95_val = quantile(val_ind_tmp, 95)
 
             $.ajax({
-                url: "data/SPY.csv",
+                url: $.urlParam('series2'),
                 success: function (data) {
                     var data_org = Papa.parse(data)
                     var data_org_transpose = _.zip.apply(_, data_org.data)
