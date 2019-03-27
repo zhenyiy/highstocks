@@ -51,7 +51,7 @@
     $.ajax({
         url: $.urlParam('series1'),
         success: function (data) {
-            var data_ind = Papa.parse(data)
+            var data_ind = Papa.parse(data, {skipEmptyLines: true})
             var data_ind_transpose = _.zip.apply(_, data_ind.data)
             var date_ind = data_ind_transpose[0]
             var min_date = _.first(date_ind)
@@ -66,7 +66,7 @@
             $.ajax({
                 url: $.urlParam('series2'),
                 success: function (data) {
-                    var data_org = Papa.parse(data)
+                    var data_org = Papa.parse(data, {skipEmptyLines: true})
                     var data_org_transpose = _.zip.apply(_, data_org.data)
                     data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
                     var date_org = _.filter(data_org_transpose[0], function (num) {
