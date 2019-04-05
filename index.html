@@ -79,6 +79,17 @@
                     var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
                     var series_ind = _.zip(date_ind, val_ind)
                     var series_org = _.zip(date_ind, val_org)
+                    var rownum_series_ind = _.zip.apply(_, series_ind)[1].filter(Number).length
+                    var rownum_series_org = _.zip.apply(_, series_org)[1].filter(Number).length
+                    var min_len = Math.min(rownum_series_ind, rownum_series_org)
+                    if(rownum_series_ind === min_len){
+                        series_ind = series_ind.slice(0, min_len)
+                        series_org = series_org.slice(-min_len)
+                    } else {
+                        series_org = series_org.slice(0, min_len)
+                        series_ind = series_ind.slice(-min_len)
+                    }
+
 
                     $('#container').highcharts('StockChart', {
 
@@ -107,7 +118,7 @@
                                 }
                             },
                             title: {
-                                text: 'SPX',
+                                text: 'indicator',
                                 style: {
                                     color: Highcharts.getOptions().colors[1]
                                 }
@@ -115,7 +126,7 @@
                             opposite: false
                         }, { // Secondary yAxis
                             title: {
-                                text: 'Indicator',
+                                text: 'SPX',
                                 style: {
                                     color: Highcharts.getOptions().colors[0]
                                 }
@@ -167,7 +178,5 @@
         },
         dataType: "text",
     });
-
-
 
 </script>
