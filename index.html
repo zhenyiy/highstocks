@@ -16,7 +16,6 @@
 </html>
 
 <script>
-
     $.urlParam = function(name){
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
         if (results==null) {
@@ -24,15 +23,12 @@
         }
         return decodeURI(results[1]) || 0;
     }
-
-
     function normalize(min, max) {
         var delta = max - min;
         return function (val) {
             return (val - min) / delta;
         };
     }
-
     function quantile(array, percentile) {
         array.sort();
         index = percentile/100. * (array.length-1);
@@ -45,9 +41,6 @@
         }
         return result;
     }
-
-
-
     $.ajax({
         url: $.urlParam('series1'),
         success: function (data) {
@@ -58,14 +51,13 @@
             var val_ind = _.map(data_ind_transpose[1], Number)
             var min_val = Math.min(...val_ind)
             var max_val = Math.max(...val_ind)
-
             val_ind = val_ind.map(normalize(min_val, max_val))
             val_ind_tmp = JSON.parse(JSON.stringify(val_ind))
             var percentile_95_val = quantile(val_ind_tmp, 95)
-
             $.ajax({
                 url: $.urlParam('series2'),
                 success: function (data) {
+                    var data_org_name = $.urlParam('series2').split('/').slice(-1)[0].split('.')[0]
                     var data_org = Papa.parse(data, {skipEmptyLines: true})
                     var data_org_transpose = _.zip.apply(_, data_org.data)
                     data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
@@ -75,24 +67,29 @@
                     for(i = 0; i < date_ind.length; i++){
                         date_ind[i] = moment(date_ind[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
                     }
-
                     var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
+                    for(i = 0; i < date_org.length; i++){
+                        date_org[i] = moment(date_org[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
+                    }
                     var series_ind = _.zip(date_ind, val_ind)
-                    var series_org = _.zip(date_ind, val_org)
+                    var series_org = _.zip(date_org, val_org)
                     var rownum_series_ind = _.zip.apply(_, series_ind)[1].filter(Number).length
                     var rownum_series_org = _.zip.apply(_, series_org)[1].filter(Number).length
                     var min_len = Math.min(rownum_series_ind, rownum_series_org)
                     if(rownum_series_ind === min_len){
                         series_ind = series_ind.slice(0, min_len)
-                        series_org = series_org.slice(-min_len)
+                        keeps = _.difference(_.zip.apply(_, series_org)[0],_.difference(_.zip.apply(_, series_org)[0], _.zip.apply(_, series_ind)[0]))
+                        series_org = series_org.filter(function(number) {
+                            return keeps.includes(number[0])
+                        })
                     } else {
                         series_org = series_org.slice(0, min_len)
-                        series_ind = series_ind.slice(-min_len)
+                        keeps = _.difference(_.zip.apply(_, series_ind)[0],_.difference(_.zip.apply(_, series_ind)[0], _.zip.apply(_, series_org)[0]))
+                        series_ind = series_ind.filter(function(number) {
+                            return keeps.includes(number[0])
+                        })
                     }
-
-
                     $('#container').highcharts('StockChart', {
-
                         chart: {
                             zoomType: 'xy',
                         },
@@ -100,41 +97,39 @@
                             enabled: false
                         },
                         title: {
-                            text: 'Indicator vs SPX'
+                            text: 'Indicator vs ' + data_org_name
                         },
                         subtitle: {
-                            text: 'Source: gavrishchaka.com'
+                            text: 'Source: www.gavrishchaka.net'
                         },
-
                         rangeSelector: {
                             selected: 1
                         },
-
                         yAxis: [{ // Primary yAxis
                             labels: {
                                 format: '{value}',
                                 style: {
-                                    color: Highcharts.getOptions().colors[1]
+                                    color: Highcharts.getOptions().colors[0]
                                 }
                             },
+                            title: {
+                                text: data_org_name,
+                                style: {
+                                    color: Highcharts.getOptions().colors[0]
+                                }
+                            },
+                            opposite: false
+                        }, { // Secondary yAxis
                             title: {
                                 text: 'indicator',
                                 style: {
                                     color: Highcharts.getOptions().colors[1]
                                 }
                             },
-                            opposite: false
-                        }, { // Secondary yAxis
-                            title: {
-                                text: 'SPX',
-                                style: {
-                                    color: Highcharts.getOptions().colors[0]
-                                }
-                            },
                             labels: {
                                 format: '{value}',
                                 style: {
-                                    color: Highcharts.getOptions().colors[0]
+                                    color: Highcharts.getOptions().colors[1]
                                 }
                             },
                             plotLines: [ {
@@ -154,7 +149,7 @@
                         },
                         series: [
                             {
-                                name: 'SPX',
+                                name: data_org_name,
                                 data: series_org,
                                 type: 'spline',
                                 tooltip: {
@@ -171,12 +166,9 @@
                                 }
                             }]
                     });
-
-
                 }
             })
         },
         dataType: "text",
     });
-
 </script>
