@@ -78,17 +78,24 @@
                     var min_len = Math.min(rownum_series_ind, rownum_series_org)
                     if(rownum_series_ind === min_len){
                         series_ind = series_ind.slice(0, min_len)
-                        keeps = _.difference(_.zip.apply(_, series_org)[0],_.difference(_.zip.apply(_, series_org)[0], _.zip.apply(_, series_ind)[0]))
+                        keeps = _.zip.apply(_, series_ind)[0]
                         series_org = series_org.filter(function(number) {
                             return keeps.includes(number[0])
                         })
                     } else {
                         series_org = series_org.slice(0, min_len)
-                        keeps = _.difference(_.zip.apply(_, series_ind)[0],_.difference(_.zip.apply(_, series_ind)[0], _.zip.apply(_, series_org)[0]))
+                        keeps = _.zip.apply(_, series_org)[0]
                         series_ind = series_ind.filter(function(number) {
                             return keeps.includes(number[0])
                         })
                     }
+                    Highcharts.setOptions({
+                        time: {
+                            timezoneOffset: -17 * 60
+                        }
+                    });
+
+
                     $('#container').highcharts('StockChart', {
                         chart: {
                             zoomType: 'xy',
