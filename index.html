@@ -49,7 +49,6 @@
         return result;
     }
     $("#percentile_threshold").on("change", function() {
-        console.log( $('#percentile_threshold').val())
         $.ajax({
             url: $.urlParam('series1'),
             success: function (data) {
@@ -61,8 +60,6 @@
                 var min_val = Math.min(...val_ind)
                 var max_val = Math.max(...val_ind)
                 val_ind = val_ind.map(normalize(min_val, max_val))
-                val_ind_tmp = JSON.parse(JSON.stringify(val_ind))
-                var percentile_val = quantile(val_ind_tmp, $('#percentile_threshold').val())
                 $.ajax({
                     url: $.urlParam('series2'),
                     success: function (data) {
@@ -98,6 +95,7 @@
                                 return keeps.includes(number[0])
                             })
                         }
+                        var percentile_val = quantile(_.zip.apply(_, series_ind)[1], $('#percentile_threshold').val())
                         Highcharts.setOptions({
                             time: {
                                 timezoneOffset: -17 * 60
