@@ -48,6 +48,29 @@
         }
         return result;
     }
+    function percentrank(x, vec) {
+
+        var s = 0;
+
+        var b = 0;
+
+        for (var k = 0; k < vec.length; k++) {
+
+            if (vec[k] < x) {
+
+                s += 1;
+
+            } else {
+
+                b += 1;
+
+            }
+
+        }
+
+        return s/(s+b-1);
+
+    }
     $("#percentile_threshold").on("change", function() {
         $.ajax({
             url: $.urlParam('series1'),
@@ -60,6 +83,11 @@
                 var min_val = Math.min(...val_ind)
                 var max_val = Math.max(...val_ind)
                 val_ind = val_ind.map(normalize(min_val, max_val))
+                var val_ind_temp = Array(val_ind.length)
+                for(var i = 0; i < val_ind.length; i++){
+                    val_ind_temp[i] = percentrank(val_ind[i], val_ind)
+                }
+                val_ind = val_ind_temp
                 $.ajax({
                     url: $.urlParam('series2'),
                     success: function (data) {
@@ -95,7 +123,7 @@
                                 return keeps.includes(number[0])
                             })
                         }
-                        var percentile_val = quantile(_.zip.apply(_, series_ind)[1], $('#percentile_threshold').val())
+                        var percentile_val =  $('#percentile_threshold').val() / 100
                         Highcharts.setOptions({
                             time: {
                                 timezoneOffset: -17 * 60
@@ -189,141 +217,4 @@
     $(document).ready(function(){
         $("#percentile_threshold").trigger('change');
     })
-    // $.ajax({
-    //     url: $.urlParam('series1'),
-    //     success: function (data) {
-    //         var data_ind = Papa.parse(data, {skipEmptyLines: true})
-    //         var data_ind_transpose = _.zip.apply(_, data_ind.data)
-    //         var date_ind = data_ind_transpose[0]
-    //         var min_date = _.first(date_ind)
-    //         var val_ind = _.map(data_ind_transpose[1], Number)
-    //         var min_val = Math.min(...val_ind)
-    //         var max_val = Math.max(...val_ind)
-    //         val_ind = val_ind.map(normalize(min_val, max_val))
-    //         val_ind_tmp = JSON.parse(JSON.stringify(val_ind))
-    //         var percentile_val = quantile(val_ind_tmp, 95)
-    //         $.ajax({
-    //             url: $.urlParam('series2'),
-    //             success: function (data) {
-    //                 var data_org_name = $.urlParam('series2').split('/').slice(-1)[0].split('.')[0]
-    //                 var data_org = Papa.parse(data, {skipEmptyLines: true})
-    //                 var data_org_transpose = _.zip.apply(_, data_org.data)
-    //                 data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
-    //                 var date_org = _.filter(data_org_transpose[0], function (num) {
-    //                     return num >= min_date
-    //                 }).reverse()
-    //                 for(i = 0; i < date_ind.length; i++){
-    //                     date_ind[i] = moment(date_ind[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
-    //                 }
-    //                 var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
-    //                 for(i = 0; i < date_org.length; i++){
-    //                     date_org[i] = moment(date_org[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
-    //                 }
-    //                 var series_ind = _.zip(date_ind, val_ind)
-    //                 var series_org = _.zip(date_org, val_org)
-    //                 var rownum_series_ind = _.zip.apply(_, series_ind)[1].filter(Number).length
-    //                 var rownum_series_org = _.zip.apply(_, series_org)[1].filter(Number).length
-    //                 var min_len = Math.min(rownum_series_ind, rownum_series_org)
-    //                 if(rownum_series_ind === min_len){
-    //                     series_ind = series_ind.slice(0, min_len)
-    //                     keeps = _.zip.apply(_, series_ind)[0]
-    //                     series_org = series_org.filter(function(number) {
-    //                         return keeps.includes(number[0])
-    //                     })
-    //                 } else {
-    //                     series_org = series_org.slice(0, min_len)
-    //                     keeps = _.zip.apply(_, series_org)[0]
-    //                     series_ind = series_ind.filter(function(number) {
-    //                         return keeps.includes(number[0])
-    //                     })
-    //                 }
-    //                 Highcharts.setOptions({
-    //                     time: {
-    //                         timezoneOffset: -17 * 60
-    //                     }
-    //                 });
-    //
-    //
-    //                 $('#container').highcharts('StockChart', {
-    //                     chart: {
-    //                         zoomType: 'xy',
-    //                     },
-    //                     credits: {
-    //                         enabled: false
-    //                     },
-    //                     title: {
-    //                         text: 'Indicator vs ' + data_org_name
-    //                     },
-    //                     subtitle: {
-    //                         text: 'Source: www.gavrishchaka.net'
-    //                     },
-    //                     rangeSelector: {
-    //                         selected: 1
-    //                     },
-    //                     yAxis: [{ // Primary yAxis
-    //                         labels: {
-    //                             format: '{value}',
-    //                             style: {
-    //                                 color: Highcharts.getOptions().colors[0]
-    //                             }
-    //                         },
-    //                         title: {
-    //                             text: data_org_name,
-    //                             style: {
-    //                                 color: Highcharts.getOptions().colors[0]
-    //                             }
-    //                         },
-    //                         opposite: false
-    //                     }, { // Secondary yAxis
-    //                         title: {
-    //                             text: 'indicator',
-    //                             style: {
-    //                                 color: Highcharts.getOptions().colors[1]
-    //                             }
-    //                         },
-    //                         labels: {
-    //                             format: '{value}',
-    //                             style: {
-    //                                 color: Highcharts.getOptions().colors[1]
-    //                             }
-    //                         },
-    //                         plotLines: [ {
-    //                             value: percentile_val,
-    //                             color: 'red',
-    //                             dashStyle: 'shortdash',
-    //                             width: 2,
-    //                             label: {
-    //                                 text: '95 pencentile'
-    //                             }
-    //                         }]
-    //                     }],
-    //                     plotOptions: {
-    //                         series: {
-    //                             turboThreshold: 5000
-    //                         }
-    //                     },
-    //                     series: [
-    //                         {
-    //                             name: data_org_name,
-    //                             data: series_org,
-    //                             type: 'spline',
-    //                             tooltip: {
-    //                                 valueDecimals: 2,
-    //                             }
-    //                         },
-    //                         {
-    //                             name: 'Indicator',
-    //                             data: series_ind,
-    //                             yAxis: 1,
-    //                             type: 'spline',
-    //                             tooltip: {
-    //                                 valueDecimals: 2,
-    //                             }
-    //                         }]
-    //                 });
-    //             }
-    //         })
-    //     },
-    //     dataType: "text",
-    // });
 </script>
