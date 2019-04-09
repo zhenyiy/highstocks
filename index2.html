@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chart</title>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="lib/papaparse.min.js"></script>
+    <script src="lib/highstock.js"></script>
+    <script src="lib/moment.min.js"></script>
+    <script src="lib/underscore-min.js"></script>
+</head>
+<body>
+<div class="pure-g">
+    <div class="pure-u-2-3">
+        <label>Time Duration (Days)</label>
+        <input class="pure-input-1" type="number" id="time_duration" placeholder="Time Duration" value="140">
+    </div>
+</div>
+
+<div id="container" style="height: 400px; min-width: 310px"></div>
+
+</body>
+</html>
+
+<script>
+    $.urlParam = function(name){
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results==null) {
+            return null;
+        }
+        return decodeURI(results[1]) || 0;
+    }
+    function normalize(min, max) {
+        var delta = max - min;
+        return function (val) {
+            return (val - min) / delta;
+        };
+    }
+    function quantile(array, percentile) {
+        array.sort();
+        index = percentile/100. * (array.length-1);
+        if (Math.floor(index) == index) {
+            result = array[index];
+        } else {
+            i = Math.floor(index)
+            fraction = index - i;
+            result = array[i] + (array[i+1] - array[i]) * fraction;
+        }
+        return result;
+    }
+    $("#time_duration").on("change", function() {
+        $.ajax({
+            url: $.urlParam('series2'),
+            success: function (data) {
+                var data_org_name = $.urlParam('series2').split('/').slice(-1)[0].split('.')[0]
+                var data_org = Papa.parse(data, {skipEmptyLines: true})
+                var data_org_transpose = _.zip.apply(_, data_org.data)
+                data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
+                var date_org = data_org_transpose[0].reverse()
+                var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
+                var date_org_diff = Array(date_org.length)
+                for (var i = 0; i < date_org.length; i++) {
+                    date_org_diff[i] = moment(date_org[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
+                }
+                $.ajax({
+                    url: $.urlParam('series3'),
+                    success: function (data) {
+                        var duration = Math.round($('#time_duration').val())
+                        var data_dates = Papa.parse(data, {skipEmptyLines: true}).data
+                        for (var i = 0; i < data_dates.length; i++) {
+                            data_dates[i] = moment(data_dates[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
+                        }
+                        var indexes = Array(data_dates.length)
+                        for (var j = 0; j < data_dates.length; j++) {
+                            indexes[j] = date_org_diff.indexOf(data_dates[j])
+                        }
+                        indexes = _.without(indexes, -1)
+                        var series_arr = Array(indexes.length)
+                        var series_dates = Array(indexes.length)
+                        for (var k = 0; k < indexes.length; k++) {
+                            series_arr[k] = val_org.slice(indexes[k], indexes[k] + duration)
+                            series_dates[k] = date_org[indexes[k]]
+                        }
+                        var series_returns = Array(indexes.length)
+                        for (var i = 0; i < series_returns.length; i++) {
+                            var temp = Array(series_arr[i].length - 1)
+                            for (var j = 0; j < temp.length; j++) {
+                                if (series_arr[i][0] === 0) {
+                                    div = 0.001
+                                } else {
+                                    div = series_arr[i][0]
+                                }
+                                temp[j] = (series_arr[i][j + 1] - div) / div * 100
+                            }
+                            series_returns[i] = temp
+                        }
+
+                        var chart = Highcharts.chart('container', {
+                            chart: {
+                                zoomType: 'xy',
+                            },
+                            credits: {
+                                enabled: false
+                            },
+                            title: {
+                                text: 'The Returns of ' + data_org_name
+                            },
+                            subtitle: {
+                                text: 'Source: www.gavrishchaka.net'
+                            },
+                            yAxis: { // Primary yAxis
+                                title: {
+                                    text: 'Return (%)',
+                                }
+                            },
+                            xAxis: {
+                                title: {
+                                    text: 'Number of Days since Signal Date',
+                                }
+
+                            },
+
+
+                            series: []
+                        });
+
+                        for (var n = 0; n < series_returns.length; n++) {
+                            chart.addSeries({
+                                name: series_dates[n],
+                                data: series_returns[n],
+                                tooltip: {
+                                    valueDecimals: 2,
+                                    valueSuffix: ' %'
+                                },
+                                pointStart: 1
+                            });
+                        }
+                    }
+                })
+            },
+            dataType: "text",
+        });
+    })
+
+    $(document).ready(function(){
+        $("#time_duration").trigger('change');
+    })
+
+</script>
