@@ -13,7 +13,7 @@
 <div class="pure-g">
     <div class="pure-u-2-3">
         <label>Time Duration (Days)</label>
-        <input class="pure-input-1" type="number" id="time_duration" placeholder="Time Duration" value="140">
+        <input class="pure-input-1" type="number" id="time_duration" placeholder="Time Duration">
     </div>
 </div>
 
@@ -143,6 +143,11 @@
     })
 
     $(document).ready(function(){
+        if($.urlParam('duration') === null){
+            $("#time_duration").val(140)
+        } else {
+            $("#time_duration").val($.urlParam('duration'))
+        }
         $("#time_duration").trigger('change');
     })
 
