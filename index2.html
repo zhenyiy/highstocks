@@ -79,7 +79,7 @@
                          var min_date = _.first(date_ind)
                          var val_ind = _.map(data_ind_transpose[1], Number)
 
-                         var threshold = $('#percentile_threshold').val() != null ? $('#percentile_threshold').val() / 100 : 0.99
+                         var threshold = $('#percentile_threshold').val() != null ? Math.round($('#percentile_threshold').val()) / 100 : 0.99
                          var val_ind_rank = Array(val_ind.length)
                          for(var i = 0; i < val_ind.length; i++){
                              val_ind_rank[i] = percentrank(val_ind[i], val_ind)
@@ -187,8 +187,7 @@
         } else {
             $("#time_duration").val($.urlParam('duration'))
         }
-        $("#percentile_threshold").trigger('change');
-        $("#time_duration").trigger('change');
+        $("#control > input").trigger('change');
     })
 
 </script>
