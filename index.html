@@ -14,7 +14,7 @@
 <div class="pure-g">
     <div class="pure-u-2-3">
         <label>Indicators Percentile Threshold</label>
-        <input class="pure-input-1" type="number" id="percentile_threshold" placeholder="Percentile Threshold" value="95">
+        <input class="pure-input-1" type="number" id="percentile_threshold" placeholder="Percentile Threshold">
     </div>
 </div>
 <div id="container" style="height: 400px; min-width: 310px"></div>
@@ -215,6 +215,11 @@
         });
     });
     $(document).ready(function(){
+        if($.urlParam('threshold') === null){
+            $("#percentile_threshold").val(140)
+        } else {
+            $("#percentile_threshold").val($.urlParam('threshold'))
+        }
         $("#percentile_threshold").trigger('change');
     })
 </script>
