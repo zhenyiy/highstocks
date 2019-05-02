@@ -46,11 +46,11 @@
         var res = [];
         for(var i = 0; i < vec.length; i++){
             if(threshold >= 0.5) {
-                if (i > 0 && vec[i] >= threshold && vec[i - 1] < threshold) {
+                if (vec[i] >= threshold) {
                     res.push(i);
                 }
             } else {
-                if (i > 0 && vec[i] <= threshold && vec[i - 1] > threshold) {
+                if (vec[i] <= threshold) {
                     res.push(i);
                 }
             }
