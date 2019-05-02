@@ -34,21 +34,24 @@
     }
     function percentrank(x, vec) {
         var s = 0;
-        var b = 0;
         for (var k = 0; k < vec.length; k++) {
             if (vec[k] < x) {
                 s += 1;
-            } else {
-                b += 1;
             }
         }
-        return s/(s+b-1);
+        return s/(vec.length-1);
     }
     function getIndicatorIndexes(vec, threshold){
         var res = [];
         for(var i = 0; i < vec.length; i++){
-            if( i > 0 && vec[i] >= threshold && vec[i - 1] < threshold){
-                res.push(i);
+            if(threshold >= 0.5) {
+                if (i > 0 && vec[i] >= threshold && vec[i - 1] < threshold) {
+                    res.push(i);
+                }
+            } else {
+                if (i > 0 && vec[i] <= threshold && vec[i - 1] > threshold) {
+                    res.push(i);
+                }
             }
         }
         return res;
@@ -84,6 +87,7 @@
                          for(var i = 0; i < val_ind.length; i++){
                              val_ind_rank[i] = percentrank(val_ind[i], val_ind)
                          }
+
                          var thresholdIndexes = getIndicatorIndexes(val_ind_rank, threshold);
                          var thresholdDates = []
                          for(var i = 0; i < thresholdIndexes.length; i++){
@@ -162,7 +166,7 @@
                                  name: series_dates[n],
                                  data: series_returns[n],
                                  tooltip: {
-                                     valueDecimals: 2,
+                                     valueDecimals: 4,
                                      valueSuffix: ' %'
                                  },
                                  pointStart: 1
