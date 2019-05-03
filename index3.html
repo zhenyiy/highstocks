@@ -82,6 +82,16 @@
                          var date_ind = data_ind_transpose[0]
                          var val_ind = _.map(data_ind_transpose[1], Number)
 
+                         var intersection_dates = _.intersection(date_org, date_ind)
+
+                         var series_ind = _.zip(date_ind, val_ind)
+
+                         series_ind = series_ind.filter(function(number) {
+                             return intersection_dates.includes(number[0])
+                         })
+
+                         val_ind = _.zip.apply(_, series_ind)[1]
+
                          var threshold = $('#percentile_threshold').val() != null ? Math.round($('#percentile_threshold').val()) / 100 : 0.99
                          var val_ind_rank = Array(val_ind.length)
                          for(var i = 0; i < val_ind.length; i++){

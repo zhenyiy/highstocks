@@ -105,24 +105,20 @@
                         for(i = 0; i < date_org.length; i++){
                             date_org[i] = moment(date_org[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
                         }
+
+                        var intersection_dates = _.intersection(date_org, date_ind)
+
                         var series_ind = _.zip(date_ind, val_ind)
                         var series_org = _.zip(date_org, val_org)
-                        var rownum_series_ind = _.zip.apply(_, series_ind)[1].filter(Number).length
-                        var rownum_series_org = _.zip.apply(_, series_org)[1].filter(Number).length
-                        var min_len = Math.min(rownum_series_ind, rownum_series_org)
-                        if(rownum_series_ind === min_len){
-                            series_ind = series_ind.slice(0, min_len)
-                            keeps = _.zip.apply(_, series_ind)[0]
-                            series_org = series_org.filter(function(number) {
-                                return keeps.includes(number[0])
-                            })
-                        } else {
-                            series_org = series_org.slice(0, min_len)
-                            keeps = _.zip.apply(_, series_org)[0]
-                            series_ind = series_ind.filter(function(number) {
-                                return keeps.includes(number[0])
-                            })
-                        }
+
+                        series_ind = series_ind.filter(function(number) {
+                            return intersection_dates.includes(number[0])
+                        })
+
+                        series_org = series_org.filter(function(number) {
+                            return intersection_dates.includes(number[0])
+                        })
+
                         var percentile_val =  $('#percentile_threshold').val() / 100
                         Highcharts.setOptions({
                             time: {
