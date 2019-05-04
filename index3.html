@@ -100,7 +100,7 @@
                          var thresholdIndexes = getIndicatorIndexes(val_ind_rank, threshold);
                          var thresholdDates = []
                          for(var i = 0; i < thresholdIndexes.length; i++){
-                             thresholdDates.push(date_ind[thresholdIndexes[i]])
+                             thresholdDates.push(intersection_dates[thresholdIndexes[i]])
                          }
 
                          var data_dates = thresholdDates
@@ -135,20 +135,22 @@
                          }
 
                          // min, max, mean, 25% quantile, 75% quantile
-                         stats_series = Array(5)
+                         stats_series = Array(7)
                          for(var i = 0; i < stats_series.length; i++){
                              stats_series[i] = []
                          }
                          series_returns_transpose = _.zip.apply(_, series_returns)
                          for(var i = 0; i < series_returns_transpose.length; i++){
                              stats_series[0].push(ss.min(series_returns_transpose[i]))
-                             stats_series[1].push(ss.quantile(series_returns_transpose[i], 0.25))
-                             stats_series[2].push(ss.mean(series_returns_transpose[i]))
-                             stats_series[3].push(ss.quantile(series_returns_transpose[i], 0.75))
-                             stats_series[4].push(ss.max(series_returns_transpose[i]))
+                             stats_series[1].push(ss.quantile(series_returns_transpose[i], 0.1))
+                             stats_series[2].push(ss.quantile(series_returns_transpose[i], 0.25))
+                             stats_series[3].push(ss.mean(series_returns_transpose[i]))
+                             stats_series[4].push(ss.quantile(series_returns_transpose[i], 0.75))
+                             stats_series[5].push(ss.quantile(series_returns_transpose[i], 0.9))
+                             stats_series[6].push(ss.max(series_returns_transpose[i]))
                          }
 
-                         stats_series_names = ['min', '25% quantile', 'mean', '75% quantile', 'max']
+                         stats_series_names = ['min', '10% quantile', '25% quantile', 'mean', '75% quantile', '90% quantile', 'max']
 
                          var chart = Highcharts.chart('container', {
                              chart: {

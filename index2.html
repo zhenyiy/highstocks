@@ -100,7 +100,7 @@
                          var thresholdIndexes = getIndicatorIndexes(val_ind_rank, threshold);
                          var thresholdDates = []
                          for(var i = 0; i < thresholdIndexes.length; i++){
-                             thresholdDates.push(date_ind[thresholdIndexes[i]])
+                             thresholdDates.push(intersection_dates[thresholdIndexes[i]])
                          }
 
                          // var data_dates = Papa.parse(data, {skipEmptyLines: true}).data
