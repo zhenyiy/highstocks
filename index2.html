@@ -8,6 +8,7 @@
     <script src="lib/highstock.js"></script>
     <script src="lib/moment.min.js"></script>
     <script src="lib/underscore-min.js"></script>
+    <script src="lib/simple-statistics.min.js"></script>
 </head>
 <body>
 <div class="pure-g">
@@ -66,7 +67,9 @@
                     url: $.urlParam('series3'),
                     success: function (data) {
                         var duration = Math.round($('#time_duration').val())
-                        var data_dates = Papa.parse(data, {skipEmptyLines: true}).data
+                        var data_dates = Papa.parse(data, {skipEmptyLines: true})
+                        var data_dates_transpose = _.zip.apply(_, data_dates.data)
+                        data_dates = data_dates_transpose[0]
                         for (var i = 0; i < data_dates.length; i++) {
                             data_dates[i] = moment(data_dates[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
                         }
@@ -94,6 +97,31 @@
                             }
                             series_returns[i] = temp
                         }
+
+                        var max_len = 0
+                        for(var i = 0; i < series_returns.length; i++){
+                            max_len = Math.max(max_len, series_returns[i].length)
+                        }
+
+                        series_returns = series_returns.filter(function (series) { return series.length === max_len })
+
+                        // min, max, mean, 25% quantile, 75% quantile
+                        stats_series = Array(7)
+                        for(var i = 0; i < stats_series.length; i++){
+                            stats_series[i] = []
+                        }
+                        series_returns_transpose = _.zip.apply(_, series_returns)
+                        for(var i = 0; i < series_returns_transpose.length; i++){
+                            stats_series[0].push(ss.min(series_returns_transpose[i]))
+                            stats_series[1].push(ss.quantile(series_returns_transpose[i], 0.1))
+                            stats_series[2].push(ss.quantile(series_returns_transpose[i], 0.25))
+                            stats_series[3].push(ss.mean(series_returns_transpose[i]))
+                            stats_series[4].push(ss.quantile(series_returns_transpose[i], 0.75))
+                            stats_series[5].push(ss.quantile(series_returns_transpose[i], 0.9))
+                            stats_series[6].push(ss.max(series_returns_transpose[i]))
+                        }
+
+                        stats_series_names = ['min', '10% quantile', '25% quantile', 'mean', '75% quantile', '90% quantile', 'max']
 
                         var chart = Highcharts.chart('container', {
                             chart: {
@@ -124,12 +152,12 @@
                             series: []
                         });
 
-                        for (var n = 0; n < series_returns.length; n++) {
+                        for (var n = 0; n < stats_series.length; n++) {
                             chart.addSeries({
-                                name: series_dates[n],
-                                data: series_returns[n],
+                                name: stats_series_names[n],
+                                data: stats_series[n],
                                 tooltip: {
-                                    valueDecimals: 2,
+                                    valueDecimals: 4,
                                     valueSuffix: ' %'
                                 },
                                 pointStart: 1
