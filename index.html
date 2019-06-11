@@ -18,6 +18,9 @@
 </html>
 
 <script>
+    /// cut off date for time series
+    var CUTOFF_DATE = 20071231
+
     $.urlParam = function(name){
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
         if (results==null) {
@@ -87,6 +90,10 @@
                         data_org_transpose[0] = data_org_transpose[0].map(x => x.slice(0, 8))
                         var date_org = data_org_transpose[0].reverse()
                         var val_org = _.map(data_org_transpose[4].slice(0, date_org.length).reverse(), Number)
+                        cnt_dates = date_org.filter(function (series) { return parseInt(series) > CUTOFF_DATE }).length
+                        date_org = date_org.slice(-cnt_dates, date_org.length)
+                        val_org = val_org.slice(-cnt_dates, val_org.length)
+
                         for(i = 0; i < date_org.length; i++){
                             date_org[i] = moment(date_org[i], "YYYYMMDD").diff(moment("19700101", "YYYYMMDD"))
                         }
