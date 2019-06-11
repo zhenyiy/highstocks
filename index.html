@@ -114,8 +114,11 @@
                             subtitle: {
                                 text: 'Source: www.gavrishchaka.net'
                             },
+                            xAxis: {
+                                range: 365 * 24 * 3600 * 1000 // 1 year
+                            },
                             rangeSelector: {
-                                selected: 1
+                                enabled: true
                             },
                             yAxis: [{ // Primary yAxis
                                 labels: {
