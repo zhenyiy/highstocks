@@ -92,6 +92,9 @@
                         }
 
                         var series_org = _.zip(date_org, val_org)
+                        var look_back_period = $.urlParam('lbp') ? $.urlParam('lbp') : Number.MAX_VALUE
+                        var num_days = Math.min(date_org.length, look_back_period)
+                        series_org = series_org.slice(date_org.length - num_days)
 
 
                         Highcharts.setOptions({
