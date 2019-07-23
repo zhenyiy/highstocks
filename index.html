@@ -103,6 +103,11 @@
                         var num_days = Math.min(date_org.length, look_back_period)
                         series_org = series_org.slice(date_org.length - num_days)
 
+                        var last_date = Date.UTC(data_org_transpose[0][0].substring(0,4),data_org_transpose[0][0].substring(4,6), data_org_transpose[0][0].substring(6,8))
+                        jsonArray = jsonArray.filter(function (data) { return moment(last_date).diff(moment(data['x']), 'days') < num_days })
+
+
+
 
                         Highcharts.setOptions({
                             time: {
