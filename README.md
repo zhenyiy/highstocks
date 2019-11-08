@@ -12,3 +12,5 @@ https://storage.googleapis.com/zhenyiy-shared-files/highstocks/index2.html?serie
 https://storage.googleapis.com/zhenyiy-shared-files/highstocks/index5.html?series2=data/SPY.csv&series1=data/DailyEDLMatchResults.txt&threshold=99&duration=140
 4. Signal Return Graph with Stats
 https://storage.googleapis.com/zhenyiy-shared-files/highstocks/index3.html?series2=data/SPY.csv&series1=data/DailyEDLMatchResults.txt&threshold=99&duration=140
+5. Intraday Graph
+https://storage.googleapis.com/zhenyiy-shared-files/highstocks/index6.html?series2=data/Intraday_DailyUpdate.csv
