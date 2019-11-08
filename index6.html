@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="60">
+    <title>Chart</title>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="lib/papaparse.min.js"></script>
+    <script src="lib/highstock.js"></script>
+    <script src="lib/moment.min.js"></script>
+    <script src="lib/underscore-min.js"></script>
+    <script src="lib/simple-statistics.min.js"></script>
+</head>
+<body>
+
+
+<div id="container" style="height: 400px; min-width: 310px"></div>
+
+</body>
+</html>
+
+<script>
+    $.urlParam = function(name){
+        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+        if (results==null) {
+            return null;
+        }
+        return decodeURI(results[1]) || 0;
+    }
+    function normalize(min, max) {
+        var delta = max - min;
+        return function (val) {
+            return (val - min) / delta;
+        };
+    }
+    function quantile(array, percentile) {
+        array.sort();
+        index = percentile/100. * (array.length-1);
+        if (Math.floor(index) == index) {
+            result = array[index];
+        } else {
+            i = Math.floor(index)
+            fraction = index - i;
+            result = array[i] + (array[i+1] - array[i]) * fraction;
+        }
+        return result;
+    }
+
+    $(document).ready(function(){
+        $.ajax({
+            url: $.urlParam('series2'),
+            success: function (data) {
+                var data_org_name = $.urlParam('series2').split('/').slice(-1)[0].split('.')[0]
+                var data_org = Papa.parse(data, {skipEmptyLines: true, header: true})
+                var data_keys = Object.keys(data_org.data[0])
+                var data_key_len = data_keys.length
+                var data_time = data_org.data.map(function (el) {
+                    return el.time;
+                });
+                var start_hour = parseInt(data_time[0].split(":")[0])
+                var start_min = parseInt(data_time[0].split(":")[1])
+                var series = Array()
+                for (var i = 1; i < data_key_len; i++) {
+                    var tmp_series = data_org.data.map(function (el) {
+                        return parseFloat(el[data_keys[i]]);
+                    })
+                    series.push(tmp_series)
+                }
+
+                var chart = Highcharts.chart('container', {
+                    chart: {
+                        zoomType: 'xy',
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    title: {
+                        text: 'The Intraday Update (Every 5 minutes)'
+                    },
+                    subtitle: {
+                        text: 'Source: www.gavrishchaka.net'
+                    },
+                    yAxis: { // Primary yAxis
+                        title: {
+                            text: 'Change',
+                        }
+                    },
+                    xAxis: {
+                        title: {
+                            text: 'Time',
+                        },
+                        type: 'datetime',
+                        dateTimeLabelFormats: {
+                            second: '%H:%M'
+                        },
+                    },
+
+
+                    series: []
+                });
+
+                for (var n = 0; n < series.length; n++) {
+                    chart.addSeries({
+                        name: data_keys[n + 1],
+                        data: series[n],
+                        tooltip: {
+                            valueDecimals: 2,
+                        },
+                        pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
+                        pointInterval: 5 * 60 * 1000
+                    });
+                }
+            }
+        })
+
+    })
+
+</script>
