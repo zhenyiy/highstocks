@@ -46,11 +46,25 @@
         return result;
     }
 
+    function perc2color(perc) {
+        var r, g, b = 0;
+        if(perc < 50) {
+            r = 255;
+            g = Math.round(5.1 * perc);
+        }
+        else {
+            g = 255;
+            r = Math.round(510 - 5.10 * perc);
+        }
+        var h = r * 0x10000 + g * 0x100 + b * 0x1;
+        return '#' + ('000000' + h.toString(16)).slice(-6);
+    }
+
+
     $(document).ready(function(){
         $.ajax({
             url: $.urlParam('series2'),
             success: function (data) {
-                var data_org_name = $.urlParam('series2').split('/').slice(-1)[0].split('.')[0]
                 var data_org = Papa.parse(data, {skipEmptyLines: true, header: true})
                 var data_keys = Object.keys(data_org.data[0])
                 var data_key_len = data_keys.length
@@ -82,7 +96,7 @@
                     },
                     yAxis: { // Primary yAxis
                         title: {
-                            text: 'Change',
+                            text: 'Return (%)',
                         }
                     },
                     xAxis: {
@@ -100,16 +114,31 @@
                 });
 
                 for (var n = 0; n < series.length; n++) {
-                    chart.addSeries({
-                        name: data_keys[n + 1],
-                        data: series[n],
-                        tooltip: {
-                            valueDecimals: 4,
-                            xDateFormat: '%H:%M'
-                        },
-                        pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
-                        pointInterval: 5 * 60 * 1000
-                    });
+                    if(n == series.length - 1){
+                        chart.addSeries({
+                            name: data_keys[n + 1],
+                            data: series[n],
+                            color:'#46475C',
+                            tooltip: {
+                                valueDecimals: 4,
+                                xDateFormat: '%H:%M'
+                            },
+                            pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
+                            pointInterval: 5 * 60 * 1000
+                        });
+                    } else {
+                        chart.addSeries({
+                            name: data_keys[n + 1],
+                            data: series[n],
+                            color: perc2color(6 * (data_key_len - n - 1)),
+                            tooltip: {
+                                valueDecimals: 4,
+                                xDateFormat: '%H:%M'
+                            },
+                            pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
+                            pointInterval: 5 * 60 * 1000
+                        });
+                    }
                 }
             }
         })
