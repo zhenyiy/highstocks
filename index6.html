@@ -65,14 +65,18 @@
         $.ajax({
             url: $.urlParam('series2'),
             success: function (data) {
+                var ticker_name = $.urlParam('series2').split('_')[1]
                 var data_org = Papa.parse(data, {skipEmptyLines: true, header: true})
                 var data_keys = Object.keys(data_org.data[0])
                 var data_key_len = data_keys.length
                 var data_time = data_org.data.map(function (el) {
                     return el.time;
                 });
-                var start_hour = parseInt(data_time[0].split(":")[0])
-                var start_min = parseInt(data_time[0].split(":")[1])
+                var start_year = parseInt(data_time[0].substring(0, 4))
+                var start_month = parseInt(data_time[0].substring(4, 6))
+                var start_day = parseInt(data_time[0].substring(6, 8))
+                var start_hour = parseInt(data_time[0].substring(8, 10))
+                var start_min = parseInt(data_time[0].substring(10, 12))
                 var series = Array()
                 for (var i = 1; i < data_key_len; i++) {
                     var tmp_series = data_org.data.map(function (el) {
@@ -89,7 +93,7 @@
                         enabled: false
                     },
                     title: {
-                        text: 'The Intraday Snapshot (Update Every 5 minutes)'
+                        text: 'The Intraday Snapshot of ' + ticker_name + ' (Update Every 5 minutes)'
                     },
                     subtitle: {
                         text: 'Source: www.gavrishchaka.net'
@@ -105,7 +109,7 @@
                         },
                         type: 'datetime',
                         dateTimeLabelFormats: {
-                            second: '%H:%M'
+                            second: '%Y-%m-%d %H:%M'
                         },
                     },
 
@@ -121,9 +125,9 @@
                             color:'#46475C',
                             tooltip: {
                                 valueDecimals: 4,
-                                xDateFormat: '%H:%M'
+                                xDateFormat: '%Y-%m-%d %H:%M'
                             },
-                            pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
+                            pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
                             pointInterval: 5 * 60 * 1000
                         });
                     } else {
@@ -133,9 +137,9 @@
                             color: perc2color(6 * (data_key_len - n - 1)),
                             tooltip: {
                                 valueDecimals: 4,
-                                xDateFormat: '%H:%M'
+                                xDateFormat: '%Y-%m-%d %H:%M'
                             },
-                            pointStart: Date.UTC(2010, 0, 1, start_hour, start_min, 00),
+                            pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
                             pointInterval: 5 * 60 * 1000
                         });
                     }
