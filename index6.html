@@ -18,6 +18,8 @@
     <div class="pure-u-2-3">
         <label>Indicators Threshold</label>
         <input class="pure-input-1" type="number" id="value_threshold" placeholder="Threshold">
+        <label>Highlight Percentile</label>
+        <input class="pure-input-1" type="number" id="value_percentile" placeholder="Percentile">
     </div>
 </div>
 <div id="container" style="height: 400px; min-width: 310px"></div>
@@ -91,6 +93,12 @@
             $("#value_threshold").val($.urlParam('threshold'))
         }
 
+        if($.urlParam('percentile') === null){
+            $("#value_percentile").val(0)
+        } else {
+            $("#value_percentile").val($.urlParam('percentile'))
+        }
+
         $.ajax({
             url: $.urlParam('series2'),
             success: function (data) {
@@ -115,6 +123,7 @@
                 }
 
                 var value_val =  $('#value_threshold').val()
+                var percentile_val = $('#value_percentile').val()
 
                 var chart = Highcharts.chart('container', {
                     chart: {
@@ -169,17 +178,32 @@
                             pointInterval: 5 * 60 * 1000
                         });
                     } else {
-                        chart.addSeries({
-                            name: data_keys[n + 1],
-                            data: series[n],
-                            color: perc2color(6 * (data_key_len - n - 1)),
-                            tooltip: {
-                                valueDecimals: 4,
-                                xDateFormat: '%Y-%m-%d %H:%M'
-                            },
-                            pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
-                            pointInterval: 5 * 60 * 1000
-                        });
+                        if(data_keys[n+1] === percentile_val + '_pct') {
+                            chart.addSeries({
+                                name: data_keys[n + 1],
+                                data: series[n],
+                                color: '#34A853',
+                                tooltip: {
+                                    valueDecimals: 4,
+                                    xDateFormat: '%Y-%m-%d %H:%M'
+                                },
+                                pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
+                                pointInterval: 5 * 60 * 1000
+                            });
+
+                        } else {
+                            chart.addSeries({
+                                name: data_keys[n + 1],
+                                data: series[n],
+                                color: perc2color(2 * (data_key_len - n - 2)),
+                                tooltip: {
+                                    valueDecimals: 4,
+                                    xDateFormat: '%Y-%m-%d %H:%M'
+                                },
+                                pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
+                                pointInterval: 5 * 60 * 1000
+                            });
+                        }
                     }
                 }
             }
@@ -192,5 +216,12 @@
         var forward_url = addOrReplaceParam(url, 'threshold', $("#value_threshold").val())
         window.location.href = forward_url
     })
+
+    $("#value_percentile").on("change", function() {
+        var url = window.location.href
+        var forward_url = addOrReplaceParam(url, 'percentile', $("#value_percentile").val())
+        window.location.href = forward_url
+    })
+
 
 </script>
