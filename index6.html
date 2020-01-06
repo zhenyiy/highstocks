@@ -108,7 +108,7 @@
                 var data_key_len = data_keys.length
                 var data_time = data_org.data.map(function (el) {
                     return el.time;
-                });
+                }).reverse();
                 var start_year = parseInt(data_time[0].substring(0, 4))
                 var start_month = parseInt(data_time[0].substring(4, 6))
                 var start_day = parseInt(data_time[0].substring(6, 8))
@@ -118,7 +118,7 @@
                 for (var i = 1; i < data_key_len; i++) {
                     var tmp_series = data_org.data.map(function (el) {
                         return parseFloat(el[data_keys[i]]);
-                    })
+                    }).reverse()
                     series.push(tmp_series)
                 }
 
@@ -196,9 +196,12 @@
                                 name: data_keys[n + 1],
                                 data: series[n],
                                 color: perc2color(2 * (data_key_len - n - 2)),
+                                lineWidth: 1,
+                                marker: {
+                                    enabled: false
+                                },
                                 tooltip: {
-                                    valueDecimals: 4,
-                                    xDateFormat: '%Y-%m-%d %H:%M'
+                                    enabled: false
                                 },
                                 pointStart: Date.UTC(start_year, start_month, start_day, start_hour, start_min, 00),
                                 pointInterval: 5 * 60 * 1000
