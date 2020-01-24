@@ -150,7 +150,9 @@
                             label: {
                                 text: 'threshold = ' + $('#value_threshold').val()
                             }
-                        }]
+                        }],
+                        max: parseFloat(Math.max(_.max(_.map(series, function(l){return _.max(l);})), $('#value_threshold').val())),
+                        min: parseFloat(Math.min(_.min(_.map(series, function(l){return _.min(l);})), $('#value_threshold').val()))
                     },
                     xAxis: {
                         title: {
